@@ -1,0 +1,19 @@
+ME333 Introduction to Mechatronics
+2022 Quiz 4: Chapter 4 Name Alex P. Sharper-Costilla
+
+1. What is the purpose of the NU32_Startup() function?
+
+NU32_Startup() configures the PIC32 and NU32 library. It sets the prefetch cache module and 
+flash wait cycle to run at the maxiumum speed. It enables interrupts on the PIC32 but disables JTAG
+debugging so that said pins are able to be used for other purposes. RF0 and RF1 are configured as ditial outputs to 
+control LED1 and LED2, respectively. It also enables UART3 for communication with a computer. 
+
+2. Why doesn’t the following command work as intended?
+LCD_WriteString(“Hello world 12345678”)
+
+The Hitachi that we use is only a 16x2 LCD screen, but the input string contains more than 16 characters, so it would roll-over and write over itself. 
+
+
+3. What does the command line instruction make clean do?
+
+"make clean"  removes files created after the "make" command has been used, such as .hex, .elf, .dis, .map, and .o files. 

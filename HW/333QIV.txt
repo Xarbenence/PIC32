@@ -1,0 +1,38 @@
+ME333 Introduction to Mechatronics
+2022 Quiz 4: Chapter 3 Name Alex P. Sharper-Costilla
+
+1. The PIC32 has four types of memory: data RAM, program flash, SFRs, and boot flash. Which
+is cacheable, which is not? Why?
+
+/*
+ Program Flash, data RAM, and boot flash are all cacheable, but SFRs are not. This is because 
+SFRs correspond to peripherals whose values are constantly updating. If their values were cached,
+the CPU might read outdated SFR values.
+*/
+
+2. For the following SFR, how many implemented bitfields are there? After reset, which bitfields
+are initially set?
+/*
+There are 2 implemented bitfields. Bitfields 1:4 and 13:15 are all initially set to F00F upon 
+reset.
+
+
+
+*/
+
+3. What is the function of the processor.o file?
+
+/*
+This object file provides the virtual memory addresses for the PIC32's SFRs. 
+
+*/
+
+
+4. The prefetch module has a 128 bit wide path to Flash memory, but the rest of the bus matrix
+inside the PIC32 is only 32 bits wide. Why?
+
+/*
+
+The CPU can only perform some 32-bit operations in a single clock cycle. The prefetch cache module's 128 bit wide path to Flash allows it to 
+"run ahead" of the CPU's execution, predictively prefetching future instructions for the CPU so that they can be provided immediately
+on the next cycle. 

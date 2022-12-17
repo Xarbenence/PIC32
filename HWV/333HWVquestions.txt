@@ -1,0 +1,242 @@
+Chapter 5 (use no optimization for all exercises): Exercises 3, 4.
+
+
+
+
+
+
+Chapter 6: Exercises 1, 4, 5, 8, 9, 16,17. Make a demo video for 6.17
+
+6.1  Interrupts can be used to implement a fxed frequency control loop (e.g., 1 kHz). Another
+method for executing code at a fxed frequency is polling: you can keep checking the
+core timer, and when some number of ticks has passed, execute the control routine.
+Polling can also be used to check for changes on input pins and other events. Give pros
+and cons (if any) of using interrupts vs. polling.
+
+Polling has no priority, and if one is planning on running code for several minutes, it can result in roll-over which
+will require more code in order to determine how much time has actually elapsed. There are 96 IRQs that can generate interrupts,
+and the shadow register set is capable of peforming an interrupt without needing to save context. 
+
+6.4  
+(a) What happens if an IRQ is generated for an ISR at priority level 4, subpriority level 2
+while the CPU is in normal execution (not executing an ISR)? 
+If an IRQ is generated for an ISR at priority level 4, subpriority 2 while the CPU is not executing an ISR, then the CPU
+will store its context in RAM and use registers to run the requested service. Once the interrupt is completed, the context
+in RAM is copied back into the registers, and the CPU is restored to what it was previously doing. 
+
+(b) What happens if that IRQ is generated while the CPU is executing a priority level 2, subpriority level 3 ISR?
+The CPU would switch and execute the priority level 4 task first, then return to executing the priority 2 task. 
+
+(c) What happens if that IRQ is generated while the CPU is executing a priority level 4,
+subpriority level 0 ISR? 
+The CPU would complete its priority level 4, subpriority 0 task, then move to completing the priority level 4,
+subpriority 2 task. 
+
+(d) What happens if that IRQ is generated while the CPU is
+executing a priority level 6, subpriority level 0 ISR?
+The CPU would finish executing the priority level 6 task, then begin executing the priority level 4, subpriority 2 task. \
+
+6.5 
+
+An interrupt asks the CPU to stop what it's doing, attend to something else, and then
+return to what it was doing. When the CPU is asked to stop what it's doing, it needs to
+remember “context” of what it was working on, i.e., the values currently stored in the
+CPU registers. 
+
+(a) Assuming no shadow register set, what is the frst thing the CPU must
+do before executing the ISR and the last thing it must do upon completing the ISR?
+
+The CPU must store its context for the task it is currently peforming in data RAM. Upon completing the ISR, it must then
+re-load the previously saved context from data RAM back to the CPU. 
+
+(b) How does using the shadow register set change the situation?
+
+Using the Shadow Register set, the CPU does not need to save its context to RAM. Instead, it switches to its internal
+shadow registers to performt the interrupt service request, and, upon completion, switches back to the original 
+register set without needing to restore them. 
+
+6.8
+
+For the problems below, use only the SFRs IECx, IFSx, IPCy, and INTCON, and their
+CLR, SET, and INV registers (do not use other registers, nor the bit felds as in
+IFS0bits.INT0IF). Give valid C bit manipulation commands to perform the operations
+without changing any uninvolved bits. Also indicate, in English, what you are trying to
+do, in case you have the right idea but wrong C statements. Do not use any constants
+defned in Microchip XC32 fles; just use numbers.
+
+a. Enable the Timer2 interrupt, set its flag status to 0, and set its vector’s priority and
+subpriority to 5 and 2, respectively.
+// label interrupt
+
+void__ISR(_TIMER_2_VECTOR. IPL5SOFT)
+
+// enabling Timer 2 Interrupt:
+IFS0<8> IEC0<8> IPC2<4:2> IPC2<1:0>
+
+
+
+IPC2CLR = 31 // clear all positions for priority
+IPC2SET = 22 // setting priority to 5 and subpriority to 2
+IFS0SET = 0 << 8 // flag status set to 0
+IEC0SET = 1 << 8 // enable 
+
+b. Enable the Real-Time Clock and Calendar interrupt, set its flag status to 0, and set its
+vector’s priority and subpriority to 6 and 1, respectively.
+
+ IFS1<15> IEC1<15> IPC8<28:26> IPC8<25:24>
+
+
+
+IPC8CLR = 31 << 28 // clear priority and subpriority
+IPC8SET = 25 << 28 // set priority to 6 and subpriority to 1
+IFS1SET = 0 << 15 // set flag to 0
+IEC1SET = 1 << 15 // enable
+
+
+
+c. Enable the UART4 receiver interrupt, set its flag status to 0, and set its vector’s
+priority and subpriority to 7 and 3, respectively.
+
+ IFS2<3> IEC2<3> IPC12<12:10> IPC12<9:8>
+
+ IPC12SET = 33 << 12 // set priority to 7 and subp to 3
+ IFS2SET = 0 << 3 // set flag to 0
+ IEC2SET = 1 << 3 // enable 
+
+
+
+d. Enable the INT2 external input interrupt, set its flag status to 0, set its vector’s
+priority and subpriority to 3 and 2, and confgure it to trigger on a rising edge.
+
+IFS0<11> IEC0<11> IPC2<28:26> IPC2<25:24>
+
+
+
+INTCONSET = 1 << 2 // Risisng Edge for INT2
+IPC2CLR = 31 << 28 // clear priority
+IPC2SET = 14 << 28 // set priority
+IFS0SET = 0 << 11 // clear flag
+IEC0SET = 1 << 11 // enable
+
+
+
+
+
+
+
+6.9
+
+Edit Code Sample 6.3 so that each line correctly uses the “bits” forms of the SFRs.
+In other words, the left-hand sides of the statements should use a form similar to that
+used in step 5, except using INTCONbits, IPC0bits, and IEC0bits.
+
+        #include "NU32.h" // constants, funcs for startup and UART
+        #define DELAYTIME 40000000 // 40 million core clock ticks, or 1 second
+        void delay(void);
+        static volatile unsigned int Entered = 0, Exited = 0; // note the qualifier "volatile"
+        void __ISR(_EXTERNAL_0_VECTOR, IPL6SOFT) Ext0ISR(void) {
+        Entered = _CP0_GET_COUNT(); // record time ISR begins
+        
+        //IFS0CLR = 1 << 3; // clear the interrupt flag
+        IFS0bits.INT0IF = 0 // clear flag
+    
+
+        NU32_LED2 = !NU32_LED2; // turn off LED2
+        Exited = _CP0_GET_COUNT(); // record time ISR ends
+        }
+        void __ISR(_EXTERNAL_1_VECTOR, IPL6SRS) Ext1ISR(void) {
+        Entered = _CP0_GET_COUNT(); // record time ISR begins
+        
+        //IFS0CLR = 1 << 7; // clear the interrupt flag
+        IFS0bits.INT1IF = 0 // clear flag
+
+
+        NU32_LED2 = !NU32_LED2; // turn on LED2
+        Exited = _CP0_GET_COUNT(); // record time ISR ends
+        }
+        int main(void) {
+        unsigned int dt = 0;
+        unsigned int encopy, excopy; // local copies of globals Entered, Exited
+        char msg[128] = {};
+        NU32_Startup(); // cache on, min flash wait, interrupts on, LED/button init, UART init
+        __builtin_disable_interrupts(); // step 2: disable interrupts at CPU
+        
+        // INTCONSET = 0x3; // step 3: INT0 and INT1 trigger on rising edge
+        INTCONbits.INT0EP = 1 // INT0 set to rising edge
+        INTCONbits.INT1EP = 1 // INT1 set to rising edge
+
+
+        // IPC0CLR = 31 << 24; // step 4: clear 5 priority and subp bits for INT0
+        IPC0bits.
+
+        // IPC0 |= 24 << 24; // step 4: set INT0 to priority 6 subpriority 0
+
+
+        // IPC1CLR = 0x1F << 24; // step 4: clear 5 priority and subp bits for INT1
+
+
+        // IPC1 |= 0x18 << 24; // step 4: set INT1 to priority 6 subpriority 0
+
+
+        IFS0bits.INT0IF = 0; // step 5: clear INT0 flag status
+        IFS0bits.INT1IF = 0; // step 5: clear INT1 flag status
+
+        //IEC0SET = 0x88; // step 6: enable INT0 and INT1 interrupts
+        
+
+        __builtin_enable_interrupts(); // step 7: enable interrupts
+        while(1) {
+        delay(); // delay, so results sent back at reasonable rate
+        _CP0_SET_COUNT(0); // start timing
+        IFS0bits.INT0IF = 1; // artificially set the INT0 interrupt flag
+        while(IFS0bits.INT0IF) {
+        ; // wait until the ISR clears the flag
+        }
+        dt = _CP0_GET_COUNT(); // get elapsed time
+        __builtin_disable_interrupts(); // good practice before using vars shared w/ISR
+        encopy = Entered; // copy the shared variables to local copies ...
+        excopy = Exited; // ... so the time interrupts are off is short
+        __builtin_enable_interrupts(); // turn interrupts back on quickly!
+        sprintf(msg,"IPL6SOFT in %3d out %3d total %3d time %4d ns\r\n"
+        ,encopy,excopy,dt,dt*25);
+        NU32_WriteUART3(msg); // send times to the host
+        delay(); // same as above, except for INT1
+        _CP0_SET_COUNT(0);
+        IFS0bits.INT1IF = 1; // trigger INT1 interrupt
+        while(IFS0bits.INT1IF) {
+        ; // wait until the ISR clears the flag
+        }
+        dt = _CP0_GET_COUNT();
+        __builtin_disable_interrupts();
+        encopy = Entered;
+        excopy = Exited;
+        __builtin_enable_interrupts();
+        sprintf(msg," IPL6SRS in %3d out %3d total %3d time %4d ns\r\n"
+        ,encopy,excopy,dt,dt*25);
+        NU32_WriteUART3(msg);
+        }
+        return 0;
+        }
+        void delay() {
+        _CP0_SET_COUNT(0);
+        while(_CP0_GET_COUNT() < DELAYTIME) {
+        ;
+        }
+        }
+
+
+
+6.16
+
+Modify Code Sample 6.2 so the USER button is debounced. How can you change the
+ISR so the LEDs do not fash if the falling edge comes at the beginning of a very brief,
+spurious down pulse? Verify that your solution works. (Hint: Any real button press
+should last much more than 10 ms, while the mechanical bouncing period of any decent
+switch should be much less than 10 ms. See also Chapter B.2.1 for a hardware solution
+to debouncing.)
+
+// debounce shown in stopwatch.c
+
+6.17
+
+// check stopwatch.c

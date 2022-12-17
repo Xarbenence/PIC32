@@ -1,0 +1,35 @@
+/*
+333 HWIV
+
+4.1
+All #pragma declarations are private to NU32.c
+NU32_DESIRED_BAUD is a defined constant that is meant to be used across other c files.
+NU32_Startup() is a function meant to be used across other C files.
+
+NU32_ReadUART3 and NU32_WriteUART3 are meant to be used in other C files. 
+
+__builtin_disable_interupts() and __builtin_disable_interrupts() are meant to be used in other C files. 
+
+
+4.2
+
+a) Check NU32invest.c
+
+b) All function prototypes should be put into helper.h, while all of the functions themselves should be placed into helper.c. The struct and main file are defined 
+in invest.c itself. Because the prototypes reside within helper.h, an include guard should be placed at the top of the file in order to prevent said functions from
+being defined multiple times throughout the project. 
+
+c) I put the sendoutput and getinput functions in io.c, and I proceeded to make a io.h file with their prototypes and an include guard. I
+also needed to include <stdio.h> within io.h, since the functions scan and print to thge screen.
+I also mad a .h file for calculate.c, and it was within calculate.h that I defined the struct, since the calcualte function requires the struct.
+I then called calculate.h in io.h. Finally, I defined the main function in invest4c.c, and I called both .h files. 
+
+
+4.4
+Check LCDwrite.c for clear function. 
+*/
+
+
+    
+
+}
